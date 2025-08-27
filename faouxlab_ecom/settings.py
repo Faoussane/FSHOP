@@ -13,8 +13,10 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
+# Charger les variables d'environnement le plus tôt possible
 load_dotenv()
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -27,7 +29,7 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    'FaouXLab.onrender.com',  
+    'votre-app.onrender.com',  # Remplacez par le domaine réel de votre application Render
 ]
 
 # CSRF: Configuration pour Render
@@ -36,7 +38,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
-    'https://FaouXLab.onrender.com', 
+    'https://votre-app.onrender.com',  # Remplacez par le domaine réel de Render
 ]
 
 # Activer la sécurité pour HTTPS en production
@@ -91,12 +93,12 @@ WSGI_APPLICATION = 'faouxlab_ecom.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('DB_NAME', 'ecommerce'),
-        'USER': os.getenv('DB_USER', 'FSHOP'),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '3306'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'ecommerce_yst6'),
+        'USER': os.getenv('DB_USER', 'ecommerce_yst6_user'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'L13RgSjHcLbNIpeppwZm0B9n770DRF'),
+        'HOST': os.getenv('DB_HOST', 'dpg-d2ng06vfte5s739d3e0-a'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
@@ -151,8 +153,8 @@ EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.Email
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'yfaoussane@gmail.com')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'ewmj amoe ucjy ibvj')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@faouxlab.com')
 
 # Configuration Stripe
