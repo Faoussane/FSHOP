@@ -1,0 +1,1 @@
+web: gunicorn faouxlab_ecom.wsgi --log-file -

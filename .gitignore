@@ -1,0 +1,116 @@
+# ========================
+# Python
+# ========================
+*.py[cod]
+__pycache__/
+*.pyo
+*.pyd
+*.pyc
+*.pyd
+
+# ========================
+# Environnements virtuels
+# ========================
+env/
+venv/
+ENV/
+.venv/
+
+# ========================
+# Fichiers sensibles
+# ========================
+.env
+*.env
+secrets.json
+
+# ========================
+# Bases de données locales
+# ========================
+db.sqlite3
+*.sqlite3
+
+# ========================
+# Django static & media
+# ========================
+staticfiles/
+media/
+
+# ========================
+# Logs
+# ========================
+*.log
+
+# ========================
+# IDEs & éditeurs
+# ========================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ========================
+# OS spécifiques
+# ========================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ========================
+# Déploiement / Heroku
+# ========================
+*.pot
+*.mo
+*.log
+*.coverage
+*.egg
+*.egg-info/
+dist/
+build/
+pip-wheel-metadata/
+__pycache__/
+*.manifest
+*.spec
+celerybeat-schedule
+*.sqlite3-journal
+
+# ========================
+# Fichiers optionnels
+# ========================
+# Migrations Django (optionnel)
+# migrations/
+.env
+*.env
+secrets.json
+env/
+__pycache__/
+*.pyc
+media/
+staticfiles/
+*.log
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+
+
+# Environnements virtuels
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environnement
+.env.local

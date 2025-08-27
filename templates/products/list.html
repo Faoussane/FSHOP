@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block content %}
+
+    {% load static %}
+
+        <style>
+            #kok{
+                display: none;
+            }
+            @media (max-width: 768px) {
+                #kok{
+                display: block;
+            }
+            .kik{
+                display: none;
+            }
+            }
+        </style>
+        
+        <section class="carrousel">
+            <div class="carrousel-container">
+                {% for item in carousel_items %}
+                <div class="carrousel-slide{% if forloop.first %} active{% endif %}">
+                    <img src="{{ item.image.url }}" alt="{{ item.title }}">
+                    <div class="carrousel-texte">
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.description }}</p>
+                        <button class="btn-principal">Découvrir</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="carrousel-controls">
+                <button class="carrousel-prev" aria-label="Slide précédent">←</button>
+                <div class="dot-group">
+                    {% for item in carousel_items %}
+                    <span class="carrousel-dot{% if forloop.first %} active{% endif %}" aria-label="Aller au slide {{ forloop.counter }}"></span>
+                    {% endfor %}
+                </div>
+                <button class="carrousel-next" aria-label="Slide suivant">→</button>
+            </div>
+        </section>
+
+    
+<!-- 🔍 Barre de recherche (classique + AJAX) -->
+<div class="fieldset bg-base-200 border-base-300 rounded-box w-xs border p-4 w-full " style="display: grid; grid-template-columns: 1fr;">
+    <form method="get" action="{% url 'product_list' %}" class="join border-2 rounded-full input input-secondary p-0" style="width: 100%; ">
+        <input type="text" id="search-input" name="q" placeholder="Rechercher un produit..." value="{{ query|default:'' }}" class="input join-item pl-7" style="width: 90%;">
+        <div dir="rtl" style="width: 10%;">
+            <input type="submit" value="Rechercher" class="btn bg-black text-white rounded-s-full join-item kik " style="width: 100%;" />
+            <button type="submit" id="kok" class="btn bg-black text-white rounded-s-full join-item" style="width: 100%;"><i class="bx bx-search-alt-2"></i></button>
+        </div>
+    </form>
+</div>
+
+<!-- Titre de la section -->
+<h2 class="titre">
+    {% if category %}
+        Collection Luxe - {{ category.name }}
+    {% elif query %}
+        Résultats pour "{{ query }}"
+    {% else %}
+        Tous les produits
+    {% endif %}
+</h2>
+
+
+<!-- Résultats AJAX (vides au départ) -->
+<div id="search-results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"></div>
+
+
+<div class="product-grid">
+    {% for product in products %}
+    <div class="watch-item">
+        <div class="watch-details">
+            <h3>{{ product.name }}</h3>
+            <p>{{ product.description }}</p>
+            <div class="watch-price">{{ product.get_price_fcfa }} FCFA </div>
+
+            <!-- Formulaire d'ajout rapide au panier -->
+            <div class="grid md:flex gap-4">
+                <form action="{% url 'product_detail' product.id %}">
+                    <button type="submit" class="btn-order">Voir les détails</button>
+                </form>
+                <form action="{% url 'cart:add' product.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="quantity" value="1">
+                    <input type="hidden" name="update" value="False">
+                    <button type="submit" class="btn text-center uppercase text-red-500 border w-full hover:underline add-to-cart" data-product-id="{{ product.id }}">Ajouter au panier</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="watch-photos">
+            {% if product.main_image %}
+            <div class="watch-photo">
+                <img src="{{ product.main_image.url }}" alt="Photo principale" style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            {% endif %}
+            {% for image in product.images.all|slice:":3" %}
+            <div class="watch-photo">
+                <img src="{{ image.image.url }}" alt="{{ image.alt_text }}" style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+
+<!-- 🔍 Formulaire de recherche -->
+
+<!-- Catégories -->
+
+
+
+<!-- Liste normale des produits (affichée si pas de recherche AJAX) -->
+{% comment %} <div id="product-list" class="product-grid">
+    {% for product in products %}
+        <div class="watch-item">
+            <div class="watch-details">
+                <h3 class="font-bold text-lg">{{ product.name }}</h3>
+                <p class="text-gray-600">{{ product.description }}</p>
+                <div class="watch-price text-blue-600 font-semibold">{{ product.get_price_fcfa }} FCFA TTC</div>
+                <!-- Bouton Voir les détails -->
+                <a href="{% url 'product_detail' product.id product.slug %}" 
+                class="btn-order w-full text-center block mt-3">
+                Voir les détails
+                </a>
+
+            </div>
+            <div class="watch-photos mt-4 grid grid-cols-2 gap-2">
+                {% if product.main_image %}
+                    <div class="watch-photo">
+                        <img src="{{ product.main_image.url }}" alt="Photo principale" 
+                             class="w-full h-32 object-cover rounded">
+                    </div>
+                {% endif %}
+                {% for image in product.images.all|slice:":3" %}
+                    <div class="watch-photo">
+                        <img src="{{ image.image.url }}" alt="{{ image.alt_text }}" 
+                             class="w-full h-32 object-cover rounded">
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% empty %}
+        <p class="text-gray-600 mt-6">Aucun produit trouvé.</p>
+    {% endfor %}
+</div> {% endcomment %}
+
+<!-- Script AJAX -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.getElementById("search-input");
+    const resultsDiv = document.getElementById("search-results");
+    const productList = document.getElementById("product-list");
+
+    searchInput.addEventListener("keyup", function () {
+        const query = this.value.trim();
+
+        if (query.length < 2) {
+            resultsDiv.innerHTML = ""; // vide si pas de recherche
+            productList.style.display = "grid"; // on réaffiche la liste normale
+            return;
+        }
+
+        fetch(`/search/?q=${query}`)
+            .then(response => response.json())
+            .then(data => {
+                resultsDiv.innerHTML = "";
+                productList.style.display = "none"; // on cache la liste normale
+
+                if (data.results.length > 0) {
+                    data.results.forEach(product => {
+                        resultsDiv.innerHTML += `
+                            <div class="bg-white shadow-md rounded-lg p-4">
+                                <img src="${product.image}" alt="${product.name}" 
+                                     class="w-full h-40 object-cover rounded">
+                                <h3 class="mt-2 font-bold">${product.name}</h3>
+                                <p class="text-gray-600 text-sm">${product.description}</p>
+                                <p class="text-blue-600 font-semibold mt-2">${product.price}</p>
+                            </div>
+                        `;
+                    });
+                } else {
+                    resultsDiv.innerHTML = `<p class="text-gray-500">Aucun produit trouvé.</p>`;
+                }
+            })
+            .catch(error => console.error("Erreur:", error));
+    });
+});
+
+
+
+</script>
+
+
+
+{% endblock %}

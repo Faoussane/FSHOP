@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Votre Panier</h1>
+    
+    {% if cart|length > 0 %}
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <!-- Version Desktop (affichée à partir de md) -->
+            <div class="hidden md:block">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produit</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantité</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prix Unitaire</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for item in cart %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <img class="h-10 w-10 rounded-full" src="{{ item.product.main_image.url }}" alt="">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">{{ item.product.name }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <form action="{% url 'cart:update' item.product.id %}" method="post">
+                                        {% csrf_token %}
+                                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="w-20 border rounded px-2 py-1">
+                                        <input type="hidden" name="override" value="True">
+                                        <button type="submit" class="ml-2 text-blue-500 hover:text-blue-700">Mettre à jour</button>
+                                    </form>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ item.price|floatformat:2 }} FCFA
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ item.total_price|floatformat:2 }} FCFA
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <form action="{% url 'cart:remove' item.product.id %}" method="post" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-red-600 hover:text-red-900">Supprimer</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Version Mobile (affichée en dessous de md) -->
+            <div class="md:hidden">
+                {% for item in cart %}
+                <div class="p-4 border-b border-gray-200">
+                    <div class="flex items-center mb-3">
+                        <div class="flex-shrink-0 h-10 w-10">
+                            <img class="h-10 w-10 rounded-full" src="{{ item.product.main_image.url }}" alt="">
+                        </div>
+                        <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-900">{{ item.product.name }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-3">
+                        <div>
+                            <div class="text-xs text-gray-500">Prix Unitaire</div>
+                            <div class="text-sm">{{ item.price|floatformat:2 }} FCFA</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-500">Total</div>
+                            <div class="text-sm">{{ item.total_price|floatformat:2 }} FCFA</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <form action="{% url 'cart:update' item.product.id %}" method="post" class="flex items-center">
+                            {% csrf_token %}
+                            <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="w-16 border rounded px-2 py-1">
+                            <input type="hidden" name="override" value="True">
+                            <button type="submit" class="ml-2 text-blue-500 hover:text-blue-700 text-sm">Mettre à jour</button>
+                        </form>
+                        
+                        <form action="{% url 'cart:remove' item.product.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="text-red-600 hover:text-red-900 text-sm">Supprimer</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-between items-center">
+            <div class="text-xl font-bold">
+                Total: {{ cart.get_total_price|floatformat:2 }} FCFA
+            </div>
+            <a href="{% url 'cart:checkout' %}" class="px-6 py-3 btn-principal font-medium rounded-md hover:bg-blue-700">
+                Passer la commande
+            </a>
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <p class="text-gray-500 text-lg">Votre panier est vide</p>
+            <a href="{% url 'product_list' %}" class="mt-4 inline-block px-4 py-2 bg-black text-white rounded-md hover:bg-yellow-500">
+                Continuer vos achats
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+<!-- Modifiez cette ligne -->
+<form action="{% url 'cart:add' item.product.id %}" method="post">
+<!-- Et cette ligne -->

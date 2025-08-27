@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="p-6">
+    <h1 class="text-3xl font-bold mb-6">📊 Tableau de bord Admin</h1>
+
+    <!-- Sélecteur de période -->
+    <form method="get" class="mb-6">
+    <label for="period" class="font-semibold">Filtrer par :</label>
+    <select id="period" name="period" class="ml-2 p-2 border rounded">
+        <option value="today" {% if selected_period == "today" %}selected{% endif %}>Aujourd’hui</option>
+        <option value="week" {% if selected_period == "week" %}selected{% endif %}>Cette semaine</option>
+        <option value="month" {% if selected_period == "month" %}selected{% endif %}>Ce mois</option>
+        <option value="all" {% if selected_period == "all" %}selected{% endif %}>Tout</option>
+    </select>
+    <button type="submit">Filtrer</button>
+</form>
+
+    <!-- Statistiques -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold">Total Ventes</h3>
+            <p class="text-2xl font-bold text-green-600">{{ total_sales }} FCFA</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold">Nombre de Commandes</h3>
+            <p class="text-2xl font-bold text-blue-600">{{ total_orders }}</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold">Clients Uniques</h3>
+            <p class="text-2xl font-bold text-purple-600">{{ total_customers }}</p>
+        </div>
+    </div>
+
+    <!-- Commandes récentes -->
+    <div class="bg-white p-6 rounded-lg shadow mb-8">
+    <h2 class="text-xl font-semibold mb-4">🛒 Commandes récentes</h2>
+    <div class="overflow-x-auto">
+        <table class="w-full border-collapse min-w-[600px]" aria-label="Liste des commandes récentes">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="p-2 border text-left text-sm md:text-base">ID</th>
+                    <th class="p-2 border text-left text-sm md:text-base">Client</th>
+                    <th class="p-2 border text-left text-sm md:text-base">Total</th>
+                    <th class="p-2 border text-left text-sm md:text-base hidden md:table-cell">Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in recent_orders %}
+                <tr>
+                    <td class="p-2 border text-sm md:text-base">#{{ order.id }}</td>
+                    <td class="p-2 border text-sm md:text-base">
+                        {{ order.user.email|default:order.guest_email }}
+                    </td>
+                    <td class="p-2 border text-sm md:text-base">{{ order.total }} FCFA</td>
+                    <td class="p-2 border text-sm md:text-base hidden md:table-cell">
+                        {{ order.created|date:"d M Y H:i" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center p-2 text-sm md:text-base">Aucune commande.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- Pagination -->
+    {% if recent_orders.has_previous or recent_orders.has_next %}
+    <div class="pagination mt-4 flex justify-center space-x-4">
+        {% if recent_orders.has_previous %}
+            <a href="?page={{ recent_orders.previous_page_number }}&period={{ selected_period }}" class="text-blue-600 hover:underline">Précédent</a>
+        {% endif %}
+        <span>Page {{ recent_orders.number }} de {{ recent_orders.paginator.num_pages }}</span>
+        {% if recent_orders.has_next %}
+            <a href="?page={{ recent_orders.next_page_number }}&period={{ selected_period }}" class="text-blue-600 hover:underline">Suivant</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    </div>
+
+    <!-- Graphique des produits vendus -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-4">📈 Produits vendus ({{ selected_period }})</h2>
+        {% if sales_data %}
+        <div class="w-full max-w-full">
+            <canvas id="salesChart" class="max-h-[300px]"></canvas>
+        </div>
+        {% else %}
+        <p class="text-center text-gray-500">Aucune donnée de ventes pour cette période.</p>
+        {% endif %}
+    </div>
+
+    <!-- Chart.js et adaptateur date-fns -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script>
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    const salesData = {{ sales_data|safe }};
+    const period = "{{ selected_period }}";
+    const timeUnit = period === 'today' ? 'hour' : period === 'all' ? 'month' : 'day';
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: salesData.map(item => item.date),
+            datasets: [{
+                label: 'Produits vendus',
+                data: salesData.map(item => item.quantity),
+                borderColor: 'rgba(75, 192, 192, 1)', // Vert turquoise
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                fill: true,
+                tension: 0.4, // Courbe lisse
+                pointRadius: 4, // Points visibles
+                pointHoverRadius: 6,
+                pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                pointBorderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        font: {
+                            size: window.innerWidth < 640 ? 12 : 14
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Produits: ${context.parsed.y}`;
+                        },
+                        title: function(context) {
+                            return context[0].label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: timeUnit,
+                        displayFormats: {
+                            hour: 'HH:mm',
+                            day: 'dd/MM',
+                            month: 'MMM yyyy'
+                        }
+                    },
+                    ticks: {
+                        font: {
+                            size: window.innerWidth < 640 ? 10 : 12
+                        },
+                        maxRotation: 45,
+                        minRotation: 0
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        font: {
+                            size: window.innerWidth < 640 ? 10 : 12
+                        },
+                        callback: function(value) {
+                            return value; // Nombre de produits (entier)
+                        }
+                    },
+                    grid: {
+                        borderDash: [5, 5],
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+    </script>
+
+    {% endblock %}

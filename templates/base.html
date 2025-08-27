@@ -1,0 +1,487 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <title>FSHOP - {% block title %}FaouXLab - E-commerce{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-100 font-sans ">
+    <!-- Navigation -->
+  <header class="bg-black text-white fixed w-full z-10">
+        <div class="container mx-auto flex justify-between items-center p-4">
+            <div class="text-2xl font-bold">
+                <a href="{% url 'product_list' %}">F<span style="color: #d4af37;">SHOP</span></a>
+            </div>
+            <nav class="hidden md:flex space-x-6">
+                <a href="{% url 'product_list' %}" class="">Accueil</a>
+                <div class="relative group hov">
+                    <span class="cursor-pointer">Magasin</span>
+                        <div class="absolute hidden group-hover:block shadow-md mt-2 ul">
+                            {% for cat in categories %}
+                                <a href="/{{ cat.slug }}/" class="block px-4 py-2 text-gray-600 hover:bg-gray-100">{{ cat.name }}</a>
+                            {% endfor %}
+                        </div> 
+                </div>
+                <a href="#e" class="">Nos Services</a>
+            </nav>
+        <div class="flex items-center space-x-4">
+                <!-- Icône Panier (existant) -->
+                <a href="{% url 'cart:detail' %}" class="text-white relative hover:text-green-300">
+                    <i class='bx bx-cart-alt text-2xl'></i>
+                    {% with total_items=cart|length %}
+                        {% if total_items > 0 %}
+                            <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                                {{ total_items }}
+                            </span>
+                        {% endif %}
+                    {% endwith %}
+                </a>
+                
+
+                {% if user.is_superuser %}
+                <!-- Icône Admin (nouveau style) -->
+                <a href="{% url 'admin:index' %}" class="text-white hover:text-yellow-300 group relative" title="Administration">
+                    <i class='bx bx-shield-alt text-2xl'></i>
+                    <span class="admin-tooltip group-hover:opacity-100">Admin</span>
+                </a>
+                {% endif %}
+
+                {% if user.is_authenticated %}
+                    <div class="flex items-center space-x-4">
+                        <!-- Photo de profil si disponible -->
+                        {% if user.profile_picture %}
+                            <a href="{% url 'accounts:profile' %}" class="flex items-center" title="Mon compte">
+                                <img src="{{ user.profile_picture.url }}" alt="Photo de profil" class="w-8 h-8 rounded-full object-cover border-2 border-white">
+                            </a>
+                        {% else %}
+                            <!-- Icône Profil par défaut -->
+                            <a href="{% url 'accounts:profile' %}" class="text-white hover:text-green-300" title="Mon compte">
+                                <i class='bx bx-user-circle text-2xl'></i>
+                            </a>
+                        {% endif %}
+
+                        <!-- Icône Déconnexion -->
+                        <a href="{% url 'accounts:logout' %}" class="text-white hover:text-red-300" title="Déconnexion">
+                            <i class='bx bx-log-out text-2xl'></i>
+                        </a>
+                    </div>
+                {% else %}
+                    <!-- Icône Connexion -->
+                    <a href="{% url 'accounts:login' %}" class="text-white hover:text-blue-300" title="Connexion">
+                        <i class='bx bx-log-in text-2xl'></i>
+                    </a>
+                {% endif %}
+                <div>
+                    <a class="MENU"><i class='bx bx-menu text-2xl'></i></a>
+                    <nav class="SOUS_MENU md:flex space-x-6">
+                        <a href="{% url 'product_list' %}">Accueil</a>
+                        <div class="relative group hov">
+                            <a class="cursor-pointer">Magasin</a>
+                            <div class="absolute hidden group-hover:block shadow-md mt-2 ul">
+                                {% for cat in categories %}
+                                    <a href="/{{ cat.slug }}/" class="block px-4 py-2 text-gray-600 hover:bg-gray-100">{{ cat.name }}</a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <a href="#e">Nos Services</a>
+                    </nav>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+
+
+    <!-- Contenu principal -->
+    <main class="container mx-auto px-4 py-8">
+        {% if user.is_superuser %}
+            <div class="bg-yellow-100 p-4 mb-4 rounded">
+                <h2 class="text-lg font-bold">Mode Admin</h2>
+                <p>Vous avez accès aux fonctionnalités d'administration</p>
+            </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+        
+    </main>
+
+    <!-- Pied de page -->
+    
+
+         <!-- Bouton flottant -->
+    <button id="open-chat"
+        class="btn btn-circle bg-black text-white fixed bottom-6 right-6 shadow-lg">
+        <i class='bx bx-message-rounded-detail text-2xl'></i>
+    </button>
+    
+        <!-- Modal Chat -->
+        <div id="chat-modal"
+            class="hidden fixed bottom-20 right-6 bg-white rounded-xl shadow-xl w-80 h-96 flex flex-col border border-gray-200">
+            
+            <!-- Header -->
+            <div id="chat-header" class="bg-black text-white p-3 rounded-t-xl cursor-move flex justify-between items-center">
+                <span class="font-bold text-2xl text-center pl-7">F<span style="color: #d4af37;">SHOP</span>_Assistant</span>
+                <button id="close-chat" class="btn btn-xs btn-ghost text-white">✖</button>
+            </div>
+            {% if user.is_authenticated %}
+            <!-- Messages -->
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-3 space-y-2 text-sm bg-gray-50">
+                <div class="text-gray-400 text-center">Démarrez la conversation 👇</div>
+            </div>
+
+            <!-- Template pour les messages -->
+        
+
+            
+            <template id="message-template">
+                <div class="chat chat-start" data-type="assistant">
+                    <div class="chat-image avatar">
+                        <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
+                            🤖
+                        </div>
+                    </div>
+                    <div class="chat-header text-sm font-medium">
+                        <span class="font-bold ">F<span style="color: #d4af37;">SHOP</span>_Assistant</span>
+                        <time class="text-xs opacity-50 ml-2"></time>
+                    </div>
+                    <div class="chat-bubble bg-gray-200 text-gray-800"></div>
+                </div>
+                
+                <div class="chat chat-end" data-type="user">
+                    <div class="chat-image avatar">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="Photo de profil" class="w-10 h-10 rounded-full shadow-md">
+                        {% else %}
+                            <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+                                👤
+                            </div>
+                        {% endif %}
+                        
+                    </div>
+                    <div class="chat-header text-sm font-medium">
+                        {{ user.username }}
+                        <time class="text-xs opacity-50 ml-2"></time>
+                    </div>
+                    <div class="chat-bubble bg-blue-500 text-white"></div>
+                </div>
+            </template>
+            <!-- Input -->
+            <div class="p-3 border-t flex gap-2">
+                <input id="chat-input" type="text" placeholder="Votre message..."
+                    class="input input-bordered w-full text-sm" />
+                <button id="send-chat" class="btn btn-primary btn-sm"><i class='bx bxs-send text-center text-2xl'></i></button>
+            </div>
+            {% else %}
+            
+            <div class="container mx-auto" style="width: 70%; text-align: center; margin-top: 20%; box-shadow: 0px 2px 10px 5px; padding: 20px; border-radius: 20px;" ><a href="{% url 'accounts:login' %}" class="text-red-500 hover:text-blue-300" title="Connexion">Veuillez vous connecter </a> pour accéder à cette fonctionnalité. Le service est gratuit.</div>
+
+            {% endif %}
+        </div>
+    
+
+
+     <div class="footer sm:footer-horizontal bg-gray-300 text-base-content p-10 text-xl" id="e">
+        <nav class="pl-7">
+            <h4 class="footer-title">Nos Engagements</h4>
+            <a class="link">Qualité Supérieure</a>
+            <a class="link">Service Client Réactif</a>
+            <a class="link">Livraison Rapide</a>            
+        </nav>
+        
+        <nav>
+            <h6 class="footer-title">Suiver nous sur :</h6>
+            <div class="grid grid-flow-col gap-4 text-5xl  ">
+            <a href= "https://www.linkedin.com/in/faoussane-yacoubou-57639334a/?lipi=urn%3Ali%3Apage%3Ad_flagship3_feed%3BDu2Qe98NRF6gaKXetZlxsQ%3D%3D" class="btn-order" ><i class='bx bxl-linkedin' ></i></a>
+            <a href= "https://github.com/" class="btn-order" ><i class='bx bxl-github'></i></a>
+            <a href= "https://www.youtube.com/@AniVerse-j4w?sub_confirmation=1" class="btn-order"><i class='bx bxl-youtube' ></i></a>
+            </div>
+        </nav>
+        <nav class="w-full">
+            <div class="fieldset bg-gray-300 w-xs p-4 w-full " style="display: grid; grid-template-columns: 1fr;">
+                <form method="get" action="{% url 'product_list' %}" class="join border-2 rounded-full input input-secondary p-0" style="width: 100%; ">
+                    <input type="text" id="search-input" name="q" placeholder="Rechercher un produit..." value="{{ query|default:'' }}" class="input join-item pl-7" style="width: 85%;">
+                    <div dir="rtl" style="width: 15%;">
+                        <button type="submit" id="" class="btn bg-black text-white rounded-s-full join-item" style="width: 100%;"><i class="bx bx-search-alt-2"></i></button>
+                    </div>
+                </form>
+            </div>
+        </nav>
+    </div>
+
+    <footer class="bg-black text-white text-center py-4">
+        <p>&copy; 2025 FaouXLab. Tous droits réservés.</p>
+    </footer>
+    <script>
+        // Force l'émission du cookie CSRF en rendant le token dans le DOM
+        // et en visitant une page avec le template tag CSRF
+        const __csrftoken_placeholder = `{{ csrf_token }}`;
+        const slides = document.querySelectorAll('.carrousel-slide');
+        const dots = document.querySelectorAll('.carrousel-dot');
+        const container = document.querySelector('.carrousel-container');
+        const prevButton = document.querySelector('.carrousel-prev');
+        const nextButton = document.querySelector('.carrousel-next');
+        const carrousel = document.querySelector('.carrousel');
+
+        {% comment %} MENU CACHE {% endcomment %}
+        let MENU = document.querySelector(".MENU"); 
+        let SOUS_MENU = document.querySelector(".SOUS_MENU");
+
+        MENU.onclick = function() {
+            SOUS_MENU.classList.toggle("active");
+            {% comment %} alert("KK"); {% endcomment %}
+        }
+
+        {% comment %} FIN {% endcomment %}
+
+        let index = 0;
+        let interval = setInterval(run, 5000);
+
+        function showSlide(i) {
+            container.style.transform = `translateX(-${i * 100}%)`;
+            dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === i);
+            });
+        }
+
+        function run() {
+            index = (index + 1) % slides.length;
+            showSlide(index);
+        }
+
+        dots.forEach((dot, i) => {
+            dot.addEventListener('click', () => {
+                index = i;
+                showSlide(index);
+                clearInterval(interval);
+                interval = setInterval(run, 5000);
+            });
+        });
+
+        prevButton.addEventListener('click', () => {
+            index = (index - 1 + slides.length) % slides.length;
+            showSlide(index);
+            clearInterval(interval);
+            interval = setInterval(run, 5000);
+        });
+
+        nextButton.addEventListener('click', () => {
+            index = (index + 1) % slides.length;
+            showSlide(index);
+            clearInterval(interval);
+            interval = setInterval(run, 5000);
+        });
+
+        carrousel.addEventListener('mouseenter', () => clearInterval(interval));
+        carrousel.addEventListener('mouseleave', () => {
+            interval = setInterval(run, 5000);
+        });
+
+         // --- Gestion ouverture/fermeture ---
+        const openBtn = document.getElementById("open-chat");
+        const chatModal = document.getElementById("chat-modal");
+        const closeBtn = document.getElementById("close-chat");
+
+        openBtn.addEventListener("click", () => {
+            chatModal.classList.toggle("hidden");
+        });
+        closeBtn.addEventListener("click", () => {
+            chatModal.classList.add("hidden");
+        });
+
+        // --- Envoi message au backend Django ---
+        const sendBtn = document.getElementById("send-chat");
+        const input = document.getElementById("chat-input");
+        const messagesDiv = document.getElementById("chat-messages");
+
+        function appendMessage(sender, text) {
+            const div = document.createElement("div");
+            div.className = sender === "Vous" ? "text-right" : "text-left";
+            div.innerHTML = `<span class="px-2 py-1 rounded-lg inline-block 
+                ${sender === "Vous" ? "bg-blue-500 text-white" : "bg-gray-200"}">
+                <b>${sender}:</b> ${text}</span>`;
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        sendBtn.addEventListener("click", () => {
+            const message = input.value.trim();
+            if (!message) return;
+            appendMessage("Vous", message);
+            input.value = "";
+
+            fetch("/chatbot/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken()
+                },
+                body: JSON.stringify({message})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.reply) appendMessage("Bot", data.reply);
+                else appendMessage("Bot", "Erreur: " + (data.error || "Pas de réponse"));
+            });
+        });
+
+        // --- Déplacement du modal ---
+        const header = document.getElementById("chat-header");
+        let isDragging = false, offsetX, offsetY;
+
+        header.addEventListener("mousedown", (e) => {
+            isDragging = true;
+            offsetX = e.clientX - chatModal.getBoundingClientRect().left;
+            offsetY = e.clientY - chatModal.getBoundingClientRect().top;
+            document.body.style.userSelect = "none";
+        });
+
+        document.addEventListener("mousemove", (e) => {
+            if (!isDragging) return;
+            chatModal.style.left = `${e.clientX - offsetX}px`;
+            chatModal.style.top = `${e.clientY - offsetY}px`;
+            chatModal.style.bottom = "auto"; // annule la position fixed
+            chatModal.style.right = "auto";
+            chatModal.style.position = "fixed";
+        });
+        document.addEventListener("mouseup", () => {
+            isDragging = false;
+            document.body.style.userSelect = "auto";
+        });
+        function getCSRFToken() {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== "") {
+                const cookies = document.cookie.split(";");
+                for (let cookie of cookies) {
+                    cookie = cookie.trim();
+                    if (cookie.startsWith("csrftoken=")) {
+                        cookieValue = cookie.substring("csrftoken=".length);
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        document.querySelectorAll("form[action*='/cart/add/']").forEach(form => {
+            form.addEventListener("submit", function (e) {
+                e.preventDefault(); // ⛔ Bloque le rechargement classique
+
+                const formData = new FormData(form);
+                const productId = form.action.split("/").filter(Boolean).pop(); // récupère l'ID du produit
+
+                fetch(`/cart/add/${productId}/`, {
+                    method: "POST",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "X-CSRFToken": getCSRFToken()
+                    },
+                    body: new URLSearchParams(formData)
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.ok) {
+                        // ✅ Mettre à jour le badge panier
+                        let badge = document.querySelector("#cart-count");
+                        if (!badge) {
+                            // Si badge pas encore présent → on le crée
+                            const cartLink = document.querySelector("a[href*='/cart/']");
+                            badge = document.createElement("span");
+                            badge.id = "cart-count";
+                            badge.className = "absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center";
+                            cartLink.appendChild(badge);
+                        }
+                        badge.textContent = data.cart_count;
+                    }
+                })
+                .catch(err => console.error("❌ Erreur panier:", err));
+            });
+        });
+
+
+        // Charger l'historique au démarrage
+        document.addEventListener('DOMContentLoaded', function() {
+            if (document.getElementById('chat-modal')) {
+                loadChatHistory();
+            }
+        });
+
+        async function loadChatHistory() {
+            try {
+                const response = await fetch('/chatbot/history/', {
+                    headers: {
+                        'X-CSRFToken': getCSRFToken()
+                    }
+                });
+                const data = await response.json();
+                
+                if (data.messages && data.messages.length > 0) {
+                    data.messages.forEach(msg => {
+                        appendMessage(msg.type === 'user' ? 'Vous' : 'Bot', msg.content, msg.timestamp);
+                    });
+                }
+            } catch (error) {
+                console.error('Erreur chargement historique:', error);
+            }
+        }
+
+        function appendMessage(sender, text, timestamp = null) {
+            const template = document.getElementById('message-template');
+            const messagesDiv = document.getElementById('chat-messages');
+            
+            // Supprimer le message de démarrage si c'est le premier vrai message
+            if (messagesDiv.children.length === 1 && messagesDiv.firstElementChild.textContent.includes('Démarrez')) {
+                messagesDiv.innerHTML = '';
+            }
+            
+            const isUser = sender === 'Vous';
+            const messageDiv = template.content.cloneNode(true);
+            
+            // Sélectionner le bon template (user ou assistant)
+            const messageElement = messageDiv.querySelector(isUser ? '.chat-end' : '.chat-start');
+            
+            // Remplir le contenu
+            messageElement.querySelector('.chat-bubble').textContent = text;
+            if (timestamp) {
+                messageElement.querySelector('time').textContent = timestamp;
+            }
+            
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        // PAYMENT
+        document.getElementById('pay-btn').addEventListener('click', async () => {
+        const resp = await fetch("{% url 'payments:create_checkout_session' %}", {
+            method: "POST",
+            headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/json"
+            },
+            body: JSON.stringify({})
+        });
+        const data = await resp.json();
+        if (data.checkout_url) {
+            window.location.href = data.checkout_url;
+        } else {
+            const p = document.getElementById('pay-error');
+            p.textContent = data.error || "Une erreur est survenue.";
+            p.classList.remove("hidden");
+        }
+        });
+
+       
+    </script>
+    {% block extra_js %}{% endblock %}
+    <script src="{% static '' %}"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Profil{% endblock title %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <h2 class="text-3xl font-bold text-center mb-8 text-gray-800">👤 Profil de {{ user.username }}</h2>
+
+    {% if messages %}
+        <div class="bg-green-100 border border-green-300 text-green-700 p-4 mb-6 rounded-lg shadow-sm">
+            {% for message in messages %}
+                {{ message }}<br>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if form.errors %}
+        <div class="bg-red-100 border border-red-300 text-red-700 p-4 mb-6 rounded-lg shadow-sm">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    {{ error }}<br>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                {{ error }}<br>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Informations actuelles -->
+    <div class="bg-white shadow-lg rounded-lg p-6 mb-8 border border-gray-200">
+        <div class="flex flex-col items-center">
+            {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="Photo de profil" class="w-32 h-32 rounded-full shadow-md mb-4">
+            {% else %}
+                <div class="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mb-4">Aucune photo</div>
+            {% endif %}
+            <p class="text-lg"><strong>Nom d'utilisateur :</strong> {{ user.username }}</p>
+            <p class="text-lg"><strong>Email :</strong> {{ user.email }}</p>
+            <p class="text-lg"><strong>Téléphone :</strong> {{ user.phone_number|default:"Non spécifié" }}</p>
+        </div>
+    </div>
+
+    <!-- Formulaire de mise à jour -->
+     <!-- You can open the modal using ID.showModal() method -->
+    <button class="btn btn-order w-full" onclick="my_modal_3.showModal()">Modifier Mon Profil</button>
+    <dialog id="my_modal_3" class="modal">
+    <div class="modal-box">
+        <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+        <h3 class="text-xl font-semibold mb-4 text-yellow-500">✏️ Mettre à jour le profil</h3>
+        <form method="post" action="{% url 'accounts:profile' %}" enctype="multipart/form-data" class="space-y-4 bg-white p-6 rounded-lg shadow-md border border-gray-200">
+        {% csrf_token %}
+        <div>
+            <label for="id_profile_picture" class="block font-medium text-gray-700 mb-1">Photo de profil</label>
+            {{ form.profile_picture }}
+        </div>
+        <div>
+            <label for="id_phone_number" class="block font-medium text-gray-700 mb-1">Numéro de téléphone</label>
+            {{ form.phone_number }}
+        </div>
+        <button type="submit" class="w-full btn-order text-white py-2 rounded-lg transition duration-200">
+            💾 Sauvegarder les modifications
+        </button>
+    </form>
+    </div>
+    </dialog>
+    
+    
+
+    <!-- Lien déconnexion -->
+    <p class="mt-6 text-center">
+        <a href="{% url 'accounts:logout' %}" class="text-red-600 hover:underline">🚪 Se déconnecter</a>
+    </p>
+
+    <!-- Dernières transactions -->
+    <div class="mt-10">
+        <h3 class="text-xl font-semibold mt-8 mb-4">Dernières transactions</h3>
+
+        {% if transactions %}
+        <div class="bg-white p-4 rounded-lg shadow border border-gray-200">
+            <ul class="divide-y divide-gray-200">
+                {% for order in transactions %}
+                    <li class="py-3">
+                        <div class="flex justify-between">
+                            <div>
+                                <p class="font-medium text-gray-800">Commande #{{ order.id }}</p>
+                                <p class="text-sm text-gray-500">{{ order.created|date:"d/m/Y H:i" }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-green-600 font-semibold">{{ order.total }} FCFA</p>
+                            </div>
+                        </div>
+                        <ul class="text-sm text-gray-600 mt-2">
+                            {% for item in order.items.all %}
+                                <li>{{ item.quantity }}x {{ item.product.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% else %}
+            <p class="text-gray-500">Aucune transaction récente.</p>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_css %}
+<style>
+    input[type="text"], input[type="file"], input[type="tel"] {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.25rem;
+        margin-top: 0.25rem;
+    }
+    input:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+</style>
+{% endblock extra_css %}

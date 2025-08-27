@@ -1,0 +1,13 @@
+/* Styles spécifiques admin */
+.admin-only {
+    @apply hidden;
+}
+
+.is-admin .admin-only {
+    @apply block;
+}
+
+/* Badge admin */
+.admin-badge {
+    @apply bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded;
+}

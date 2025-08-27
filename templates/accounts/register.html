@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Inscription{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-md">
+    <h2 class="text-2xl font-bold text-center mb-6">Inscription</h2>
+    
+    {% if form.errors %}
+        <div class="bg-red-100 text-red-700 p-4 mb-4 rounded">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    {{ error }}<br>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                {{ error }}<br>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'accounts:register' %}" enctype="multipart/form-data" class="space-y-4">
+        {% csrf_token %}
+        <div>
+            <label for="id_username" class="block text-gray-700">Nom d'utilisateur</label>
+            {{ form.username }}
+        </div>
+        <div>
+            <label for="id_email" class="block text-gray-700">Email</label>
+            {{ form.email }}
+        </div>
+        <div>
+            <label for="id_password1" class="block text-gray-700">Mot de passe</label>
+            {{ form.password1 }}
+        </div>
+        <div>
+            <label for="id_password2" class="block text-gray-700">Confirmer le mot de passe</label>
+            {{ form.password2 }}
+        </div>
+        <div>
+            <label for="id_profile_picture" class="block text-gray-700">Photo de profil</label>
+            {{ form.profile_picture }}
+        </div>
+        <div>
+            <label for="id_phone_number" class="block text-gray-700">Numéro de téléphone</label>
+            {{ form.phone_number }}
+        </div>
+        <button type="submit" class="w-full btn-order text-white py-2 rounded transition duration-200">S'inscrire</button>
+    </form>
+
+    <p class="mt-4 text-center">
+        Déjà inscrit ? <a href="{% url 'accounts:login' %}" class="text-blue-600 hover:underline">Connectez-vous</a>
+    </p>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    input[type="text"], input[type="email"], input[type="password"], input[type="file"], input[type="tel"] {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.25rem;
+        margin-top: 0.25rem;
+    }
+    input:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>{{ product.name }}</h1>
+<p class="price">{{ product.get_price_fcfa }} FCFA TTC</p>
+<p>{{ product.description }}</p>
+
+<!-- Formulaire avec choix de quantité -->
+<form action="{% url 'cart:cart_add' product.id %}" method="post">
+    {% csrf_token %}
+    <label for="quantity">Quantité :</label>
+    <input type="number" id="quantity" name="quantity" value="1" min="1">
+    <input type="hidden" name="update" value="False">
+    <button type="submit" class="btn-order">Ajouter au panier</button>
+</form>
+{% endblock %}
