@@ -29,7 +29,7 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    'votre-app.onrender.com',  # Remplacez par le domaine réel de votre application Render
+    'FSHOP.onrender.com',  # Remplacez par le domaine réel de votre application Render
 ]
 
 # CSRF: Configuration pour Render
@@ -38,7 +38,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
-    'https://votre-app.onrender.com',  # Remplacez par le domaine réel de Render
+    'https://FSHOP.onrender.com',  # Remplacez par le domaine réel de Render
 ]
 
 # Activer la sécurité pour HTTPS en production
